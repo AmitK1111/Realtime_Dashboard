@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Crypto Dashboard</title>
+    <!-- Include Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Crypto Dashboard</h1>
+
+    <!-- Display Prices -->
+    <h3>Bitcoin: ${{ btc_price }}</h3>
+    <h3>Ethereum: ${{ eth_price }}</h3>
+
+    <!-- Chart for Price Visualization -->
+    <canvas id="cryptoChart" width="400" height="200"></canvas>
+
+    <script>
+        var ctx = document.getElementById('cryptoChart').getContext('2d');
+        var cryptoChart = new Chart(ctx, {
+            type: 'line',  // Line chart for price tracking
+            data: {
+                labels: ['Bitcoin', 'Ethereum'],  // Labels for x-axis
+                datasets: [{
+                    label: 'Crypto Prices',
+                    data: [{{ btc_price }}, {{ eth_price }}],  // Data from Django context
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+    <script>
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/crypto/');
+
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const prices = data['price_data'];
+
+            // Update the price on the frontend (Bitcoin and Ethereum)
+            document.getElementById('bitcoin-price').innerText = `Bitcoin: $${prices.bitcoin}`;
+            document.getElementById('ethereum-price').innerText = `Ethereum: $${prices.ethereum}`;
+        };
+
+        socket.onclose = function(e) {
+            console.error('WebSocket closed unexpectedly');
+        };
+    </script>
+</body>
+</html>
